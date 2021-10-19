@@ -5,7 +5,39 @@ date: "10/20/2021"
 output: github_document
 ---
 
-```{r}
+```{r load}
 library(tidyverse)
 library(p8105.datasets)
+data("instacart")
+```
+
+## Problem 1
+
+(a) How many aisles are there, and which aisles are the most items ordered from?
+
+```{r 1a}
+#How many isles are there?
+instacart %>%
+  pull("aisle") %>%
+  unique() %>%
+  length()
+
+#Which aisles are the most items ordered from?
+instacart %>%
+  pull("aisle") %>%
+  janitor::tabyl() %>%
+  arrange(desc(n)) %>%
+  head(10) #Top 10 aisles by number of items ordered
+```
+
+(b) Make a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered. Arrange aisles sensibly, and organize your plot so others can read it.
+
+```{r 1b}
+instacart %>%
+  pull("aisle") %>%
+  janitor::tabyl() %>%
+  arrange(desc(n)) %>%
+  filter(n > 10000) %>%
+  ggplot(aes(x = ., y = n)) +
+  geom_boxplot()
 ```
