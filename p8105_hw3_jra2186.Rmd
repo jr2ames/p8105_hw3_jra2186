@@ -82,7 +82,7 @@ instacart %>%
 
 (a) Clean the data.
 
-```{r}
+```{r 2a}
 data("brfss_smart2010")
 brfss <- brfss_smart2010 %>%
   janitor::clean_names() %>%
@@ -101,7 +101,7 @@ brfss <- brfss_smart2010 %>%
 
 (b) In 2002, which states were represented at 7 or more locations?
 
-```{r}
+```{r 2b}
 brfss %>%
   filter(year == 2002) %>%
   group_by(locationabbr, locationdesc) %>%
@@ -109,13 +109,11 @@ brfss %>%
   ungroup(locationdesc) %>%
   count(locationabbr, sort = TRUE) %>%
   filter(n >= 7)
-  # summarise(locationabbr,locationdesc) %>%
-  # janitor::tabyl(locationabbr) %>% pull(n) %>% sum()
 ```
 
 (c) Construct a dataset that is limited to "Excellent" responses and contains year, state, and a variable that averages the `data_value` across locations. Make a “spaghetti” plot of this average value over time within a state (that is, make a plot showing a line for each state across years – the `geom_line` geometry and `group` aesthetic will help).
 
-```{r}
+```{r 2c}
 brfss %>%
   filter(response == "Excellent") %>%
   group_by(locationabbr, year) %>%
@@ -131,7 +129,7 @@ brfss %>%
 
 (d) Make a two-panel plot showing, for the years 2006, and 2010, distribution of `data_value` for responses (“Poor” to “Excellent”) among locations in NY State
 
-```{r}
+```{r 2d}
 brfss %>%
   filter(locationabbr == "NY", year %in% c(2006,2010)) %>%
   ggplot(aes(x = response, y = data_value)) +
@@ -144,7 +142,7 @@ brfss %>%
 
 (a) Load, tidy, and otherwise wrangle the data. Your final dataset should include all originally observed variables and values; have useful variable names; include a weekday vs weekend variable; and encode data with reasonable variable classes. Describe the resulting dataset (e.g. what variables exist, how many observations, etc).
 
-```{r eval = FALSE}
+```{r 3a}
 accel <- read_csv("accel_data.csv")
 long_accel <- accel %>%
   janitor::clean_names() %>%
@@ -153,25 +151,48 @@ long_accel <- accel %>%
                names_prefix = "activity_",
                values_to = "activity") %>%
   mutate(weekend = day %in% c("Saturday","Sunday")) %>% #Make weekend variable (logical)
-  select(week, day_id, weekend, day, minute, activity)
+  select(week, day_id, weekend, day, minute, activity) %>%
+  mutate(minute = as.integer(minute), day = factor(day, levels = c(
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday")))
 ```
 
-The `long_accel` table contains `r nrow(long_accel)` rows with the following variables:
-* `week` - week since the start of recording
-* `day_id` - day overall of recording
-* `weekend` - logical variable: was this datapoint taken on a weekend?
-* `day` - day of the week
-* `minute` - minute of the day
-* `activity` - "activity" of the patient as measured by the accelerometer
+The `long_accel` table contains `r nrow(long_accel)` rows with the following `r ncol(long_accel)` column variables:
+- `week`: week since the start of recording
+
+- `day_id`: day overall of recording
+
+- `weekend`: logical variable: was this datapoint taken on a weekend?
+
+- `day`: day of the week
+
+- `minute`: minute of the day
+
+- `activity`: "activity" of the patient as measured by the accelerometer
 
 (b) Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate accross minutes to create a total activity variable for each day, and create a table showing these totals. Are any trends apparent?
 
-```{r}
-
+```{r 3b}
+long_accel %>%
+  group_by(day) %>%
+  summarize(sum_activity = sum(activity)) %>% arrange(sum_activity)
 ```
+
+*Remark*: This patient, on average, had the least activity on Saturday by a substantial margin. Plausibly, this patient has a day off from work on Saturday.
 
 (c) Accelerometer data allows the inspection activity over the course of the day. Make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week. Describe in words any patterns or conclusions you can make based on this graph.
 
-```{r}
-
+```{r 3c}
+long_accel %>%
+  ggplot(aes(x = minute, y = log10(activity), color = day)) +
+  geom_point(alpha = 0.1) +
+  geom_smooth() +
+  scale_color_viridis_d()
 ```
+
+*Remark*: For ease of visualization, I took the `log10` of `activity`. Given that minute 1 is 12:01 AM and minute 1440 is 12:00 AM the next day, this patient tends to get up earlier (or perhaps, start their commute earlier) on Wednesday and Thursday than other days of the week, at around minute 400 (6:40 AM), and has a drop in activity at minute 800 (1:20 PM) consistent with lunchtime on those days. On other days of the week, the patient seems to get up and moving later, closer to minute 500 (8:20 AM). On Mondays, Wednesdays, and Fridays, there seems to be a spike in activity around minute 1300 (9:40 PM), which would seem to contradict my knee-jerk reaction that this patient might be an observant Jew. After this late spike, activity gradually decreases on most nights of the week until about midnight.
