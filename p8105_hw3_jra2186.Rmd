@@ -5,6 +5,8 @@ date: "10/20/2021"
 output: github_document
 ---
 
+*With assistance from Hun Lee and Nikhita Damaraju*
+
 ```{r load}
 library(tidyverse)
 library(p8105.datasets)
@@ -57,14 +59,10 @@ instacart %>%
     "dog food care",
     "packaged vegetables fruits"
   )) %>%
-  select(aisle, product_name) %>%
-  pivot_wider(names_from = aisle,
-              values_from = product_name,
-              values_fn = length) %>%
-  janitor::clean_names()
-  #select(baking_ingredients, dog_food_care, packaged_vegetables_fruits)
-  # group_by(aisle, product_name) %>%
-  # tally(sort = TRUE)
+  group_by(aisle) %>%
+  count(product_name, sort = TRUE) %>% #We want the top three from each aisle
+  slice_head(n = 3) %>% #Decapitation!
+  knitr::kable()
 ```
 
 (d) Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).
