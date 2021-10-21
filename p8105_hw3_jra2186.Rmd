@@ -27,7 +27,9 @@ instacart %>%
   pull("aisle") %>%
   janitor::tabyl() %>%
   arrange(desc(n)) %>%
-  head(10) #Top 10 aisles by number of items ordered
+  mutate(percent = round(percent, 2)) %>%
+  head(10) %>% #Top 10 aisles by number of items 
+  knitr::kable()
 ```
 
 (b) Make a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered. Arrange aisles sensibly, and organize your plot so others can read it.
@@ -67,6 +69,17 @@ instacart %>%
 
 (d) Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).
 
+```{r warning=FALSE}
+instacart %>%
+  filter(product_name %in% c("Pink Lady Apples","Coffee Ice Cream")) %>%
+  pivot_wider(names_from = order_dow, values_from = order_hour_of_day) %>%
+  select(product_name, all_of(as.character(0:6))) %>%
+  group_by(product_name) %>%
+  summarize_each(funs(round(mean(., na.rm = TRUE)))) %>%
+  knitr::kable(col.names = c("Product","Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"),
+               caption = "Average hour of day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week")
+```
+
 ## Problem 2
 
 (a) Clean the data.
@@ -76,7 +89,7 @@ data("brfss_smart2010")
 brfss <- brfss_smart2010 %>%
   janitor::clean_names() %>%
   filter(topic == "Overall Health") %>%
-  #pull(response) %>% unique() -- We have responses from "Excellent" to "Poor"
+  #pull(response) %>% unique() -- We just have responses from "Excellent" to "Poor"
   mutate(
     response = factor(response,
        levels = c("Poor",
@@ -119,4 +132,22 @@ brfss %>%
   geom_boxplot() +
   facet_grid(.~year)
 ```
+
+## Problem 3
+
+(a) Load, tidy, and otherwise wrangle the data. Your final dataset should include all originally observed variables and values; have useful variable names; include a weekday vs weekend variable; and encode data with reasonable variable classes. Describe the resulting dataset (e.g. what variables exist, how many observations, etc).
+
+```{r eval = FALSE}
+accel <- read_csv("accel_data.csv")
+accel %>%
+  janitor::clean_names() %>%
+  #names() - That's a lot of columns!
+  #pull(day) %>% unique() - Ok, so we have all seven days of the week.
+  mutate(weekend = day %in% c("Saturday","Sunday")) %>% #Make weekend variable (logical)
+  
+```
+
+(b) Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate accross minutes to create a total activity variable for each day, and create a table showing these totals. Are any trends apparent?
+
+(c) Accelerometer data allows the inspection activity over the course of the day. Make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week. Describe in words any patterns or conclusions you can make based on this graph.
 
