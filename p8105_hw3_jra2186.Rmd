@@ -146,13 +146,23 @@ brfss %>%
 
 ```{r eval = FALSE}
 accel <- read_csv("accel_data.csv")
-accel %>%
+long_accel <- accel %>%
   janitor::clean_names() %>%
-  #names() - That's a lot of columns!
-  #pull(day) %>% unique() - Ok, so we have all seven days of the week.
+  pivot_longer(cols = starts_with("activity_"),
+               names_to = "minute",
+               names_prefix = "activity_",
+               values_to = "activity") %>%
   mutate(weekend = day %in% c("Saturday","Sunday")) %>% #Make weekend variable (logical)
-  
+  select(week, day_id, weekend, day, minute, activity)
 ```
+
+The `long_accel` table contains `r nrow(long_accel)` rows with the following variables:
+* `week` - week since the start of recording
+* `day_id` - day overall of recording
+* `weekend` - logical variable: was this datapoint taken on a weekend?
+* `day` - day of the week
+* `minute` - minute of the day
+* `activity` - "activity" of the patient as measured by the accelerometer
 
 (b) Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate accross minutes to create a total activity variable for each day, and create a table showing these totals. Are any trends apparent?
 
