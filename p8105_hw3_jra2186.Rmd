@@ -104,8 +104,11 @@ brfss <- brfss_smart2010 %>%
 ```{r}
 brfss %>%
   filter(year == 2002) %>%
-  pull(locationdesc) %>% unique()
-  # group_by(locationabbr) %>%
+  group_by(locationabbr, locationdesc) %>%
+  slice_head() %>% 
+  ungroup(locationdesc) %>%
+  count(locationabbr, sort = TRUE) %>%
+  filter(n >= 7)
   # summarise(locationabbr,locationdesc) %>%
   # janitor::tabyl(locationabbr) %>% pull(n) %>% sum()
 ```
@@ -117,8 +120,13 @@ brfss %>%
   filter(response == "Excellent") %>%
   group_by(locationabbr, year) %>%
   summarise(mean_data_value = mean(data_value)) %>%
-  ggplot(aes(x = year, y = mean_data_value, group = locationabbr)) +
-  geom_line() #Not the most useful plot
+  ggplot(aes(x = year,
+             y = mean_data_value,
+             group = locationabbr,
+             color = locationabbr)) +
+  geom_line() +
+  scale_color_viridis_d() +
+  labs(color = "State") #Not the most useful plot
 ```
 
 (d) Make a two-panel plot showing, for the years 2006, and 2010, distribution of `data_value` for responses (“Poor” to “Excellent”) among locations in NY State
@@ -128,7 +136,8 @@ brfss %>%
   filter(locationabbr == "NY", year %in% c(2006,2010)) %>%
   ggplot(aes(x = response, y = data_value)) +
   geom_boxplot() +
-  facet_grid(.~year)
+  facet_grid(.~year) +
+  labs(title = "Distribution of `data_value` by response in NY State, 2006 and 2010")
 ```
 
 ## Problem 3
@@ -147,5 +156,12 @@ accel %>%
 
 (b) Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate accross minutes to create a total activity variable for each day, and create a table showing these totals. Are any trends apparent?
 
+```{r}
+
+```
+
 (c) Accelerometer data allows the inspection activity over the course of the day. Make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week. Describe in words any patterns or conclusions you can make based on this graph.
 
+```{r}
+
+```
